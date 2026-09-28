@@ -52,7 +52,7 @@ and keeps every posting you applied to so you can look at it again before an int
   4. scans the text of the compiled PDF the way an ATS would. If a keyword you have is missing,
      or the resume runs over its page count, Claude revises it (up to 2 extra passes).
 - Review the PDFs and the keyword chips, ask for changes in plain English, or edit the LaTeX yourself.
-- Click **Save as applied** once you've sent it. It then shows up in **Applications**, where you can
+- Click **Mark as applied** once you've sent it. It then shows up in **Applications**, where you can
   update the status (applied → interview → offer / rejected), add notes, and read the original
   job description again.
 
