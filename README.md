@@ -6,6 +6,11 @@ and keeps every posting you applied to so you can look at it again before an int
 
 ## First-time setup
 
+0. **Install the tools** (once): [uv](https://docs.astral.sh/uv/) for Python, and Tectonic,
+   which turns LaTeX into PDFs:
+   ```
+   brew install uv tectonic
+   ```
 1. **Get an Anthropic API key**: go to https://console.anthropic.com, sign in, then
    *API keys → Create key*. Add a few dollars of credit under *Billing*. This is separate
    from a Claude.ai subscription.
@@ -15,11 +20,10 @@ and keeps every posting you applied to so you can look at it again before an int
    ```
 3. Start the app:
    ```
-   ./run.sh
+   uv run main.py
    ```
-   It opens http://localhost:8000. Stop it with Ctrl+C. The first run installs what it needs:
-   [uv](https://docs.astral.sh/uv/) and Tectonic via Homebrew if missing, then the Python packages
-   pinned in `uv.lock`. Or start it directly with `uv run uvicorn app.main:app --port 8000`.
+   It opens http://localhost:8000 (add `--no-browser` to skip that). Stop it with Ctrl+C.
+   The first run installs the Python packages pinned in `uv.lock` automatically.
 4. On the **Profile** tab:
    1. **Your info**: dump everything about you (jobs, research, projects, skills, awards, contact
       details). Paste it, or add files (PDF, Word, .tex, .txt); files are appended, so you can add your
