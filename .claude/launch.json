@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "resume-tailor", "runtimeExecutable": "zsh", "runtimeArgs": ["-c", "NO_OPEN=1 ./run.sh"], "port": 8000 }
+  ]
+}
