@@ -7,6 +7,7 @@ from . import ats, db, latex, llm, profile
 from .config import APPS_DIR
 
 MAX_POLISH_ROUNDS = 2  # extra Claude passes for page length / missing keywords
+BOTH_DOCS = ("resume", "cover_letter")
 
 
 def app_dir(app_id: int):
@@ -63,9 +64,12 @@ def revise(app_id: int, progress, instructions: str, target: str):
              "both": ""}[target]
     out = llm.revise(prof, app["job_description"], read_tex(app_id, "resume"), read_tex(app_id, "cover_letter"),
                      f"{instructions}\n{scope}".strip(), progress)
-    _apply(app_id, out)
+    # Enforce the chosen scope in code, even if Claude edited the other document anyway,
+    # and keep the automatic polish pass inside the same scope.
+    allowed = BOTH_DOCS if target == "both" else (target,)
+    _apply(app_id, out, allowed)
     db.update(app_id, changes=out["changes"])
-    _build(app_id, prof, app["ats"].get("keywords", []), progress)
+    _build(app_id, prof, app["ats"].get("keywords", []), progress, allowed)
 
 
 def rebuild(app_id: int, progress):
@@ -78,11 +82,12 @@ def rebuild(app_id: int, progress):
 
 # ---- build ------------------------------------------------------------------
 
-def _apply(app_id: int, out: dict):
-    if out.get("resume_tex", "").strip():
-        _write_tex(app_id, "resume", out["resume_tex"])
-    if out.get("cover_letter_tex", "").strip():
-        _write_tex(app_id, "cover_letter", out["cover_letter_tex"])
+def _apply(app_id: int, out: dict, allowed=BOTH_DOCS):
+    """Save Claude's updated documents, but only the ones it's allowed to change."""
+    for which in allowed:
+        tex = out.get(f"{which}_tex", "")
+        if tex.strip():
+            _write_tex(app_id, which, tex)
 
 
 def _compile(app_id: int, which: str, progress, fix: bool = True):
@@ -107,21 +112,24 @@ def evaluate(app_id: int, prof: dict, keywords: list) -> dict:
     return result
 
 
-def _issues(r: dict) -> list[str]:
+def _issues(r: dict) -> list[tuple[str, str]]:
+    """Problems found by the checks, each tagged with the document that has to change."""
     out = []
     if r["resume_pages"] > r["resume_page_limit"]:
-        out.append(f"The resume compiles to {r['resume_pages']} pages but must fit on {r['resume_page_limit']}. "
-                   "Tighten it: trim the least relevant bullets/projects and wordy phrasing, keeping every supported keyword.")
+        out.append(("resume", f"The resume compiles to {r['resume_pages']} pages but must fit on {r['resume_page_limit']}. "
+                   "Tighten it: trim the least relevant bullets/projects and wordy phrasing, keeping every supported keyword."))
     if r["cover_pages"] > r["cover_page_limit"]:
-        out.append(f"The cover letter runs to {r['cover_pages']} pages; cut it to {r['cover_page_limit']}.")
+        out.append(("cover_letter", f"The cover letter runs to {r['cover_pages']} pages; cut it to {r['cover_page_limit']}."))
     if r["missing_supported"]:
-        out.append("An ATS scan of the compiled resume PDF can't find these keywords, which the candidate's background "
+        out.append(("resume", "An ATS scan of the compiled resume PDF can't find these keywords, which the candidate's background "
                    "supports: " + "; ".join(r["missing_supported"]) + ". Work each one into the resume using the job "
-                   "posting's exact wording, in a real bullet or the skills section.")
+                   "posting's exact wording, in a real bullet or the skills section."))
     return out
 
 
-def _build(app_id: int, prof: dict, keywords: list, progress):
+def _build(app_id: int, prof: dict, keywords: list, progress, allowed=BOTH_DOCS):
+    """Compile, check, and let Claude fix page length / missing keywords, touching only
+    the document that has the problem and only documents in `allowed`."""
     app = db.get(app_id)
     for round_ in range(MAX_POLISH_ROUNDS + 1):
         progress("Compiling PDFs…")
@@ -129,13 +137,18 @@ def _build(app_id: int, prof: dict, keywords: list, progress):
         _compile(app_id, "cover_letter", progress)
         progress("Running ATS keyword check on the PDF…")
         result = evaluate(app_id, prof, keywords)
-        issues = _issues(result)
-        if not issues or round_ == MAX_POLISH_ROUNDS:
+        fixable = [(doc, msg) for doc, msg in _issues(result) if doc in allowed]
+        if not fixable or round_ == MAX_POLISH_ROUNDS:
             break
+        docs = {doc for doc, _ in fixable}
+        keep = [d.replace("_", " ") for d in BOTH_DOCS if d not in docs]
+        instructions = "\n".join(msg for _, msg in fixable)
+        if keep:
+            instructions += f"\nOnly change the {' and '.join(d.replace('_', ' ') for d in docs)}; leave the {keep[0]} unchanged."
         out = llm.revise(prof, app["job_description"], read_tex(app_id, "resume"), read_tex(app_id, "cover_letter"),
-                         "\n".join(issues), progress, label="Polishing (page length / ATS keywords)")
-        _apply(app_id, out)
-    result["warnings"] = issues
+                         instructions, progress, label="Polishing (page length / ATS keywords)")
+        _apply(app_id, out, tuple(docs))
+    result["warnings"] = [msg for _, msg in _issues(result)]
     db.update(app_id, ats=result)
 
 
@@ -151,5 +164,5 @@ def save_manual_edit(app_id: int, which: str, tex: str):
         raise
     prof = profile.load_ready()
     result = evaluate(app_id, prof, app["ats"].get("keywords", []))
-    result["warnings"] = _issues(result)
+    result["warnings"] = [msg for _, msg in _issues(result)]
     db.update(app_id, ats=result)

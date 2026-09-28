@@ -238,7 +238,7 @@ The resume must fit on {profile['resume_pages']} page(s).
 # Requested changes
 {instructions}
 
-Apply the requested changes, following all the rules. Return the full updated document(s); return an empty string for a document you didn't change."""
+Apply the requested changes, following all the rules. Change only what the request asks for: keep every other part word for word, unless the page limit or a rule forces a change. Return the full updated document(s); return an empty string for a document you didn't change."""
     return _call(_system(profile), user, REVISE_SCHEMA, progress, label)
 
 
