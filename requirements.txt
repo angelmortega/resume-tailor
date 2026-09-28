@@ -1,6 +1,0 @@
-anthropic>=1.8
-fastapi
-uvicorn[standard]
-pypdf
-python-multipart
-python-dotenv

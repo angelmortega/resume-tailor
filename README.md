@@ -9,7 +9,7 @@ and keeps every posting you applied to so you can look at it again before an int
 1. **Get an Anthropic API key**: go to https://console.anthropic.com, sign in, then
    *API keys → Create key*. Add a few dollars of credit under *Billing*. This is separate
    from a Claude.ai subscription.
-2. Paste the key into `.env`:
+2. Copy `.env.example` to `.env` (if there's no `.env` yet) and paste the key into it:
    ```
    ANTHROPIC_API_KEY=sk-ant-...
    ```
@@ -17,7 +17,9 @@ and keeps every posting you applied to so you can look at it again before an int
    ```
    ./run.sh
    ```
-   It opens http://localhost:8000. Stop it with Ctrl+C.
+   It opens http://localhost:8000. Stop it with Ctrl+C. The first run installs what it needs:
+   [uv](https://docs.astral.sh/uv/) and Tectonic via Homebrew if missing, then the Python packages
+   pinned in `uv.lock`. Or start it directly with `uv run uvicorn app.main:app --port 8000`.
 4. On the **Profile** tab:
    1. **Your info**: dump everything about you (jobs, research, projects, skills, awards, contact
       details). Paste it, or add files (PDF, Word, .tex, .txt); files are appended, so you can add your
@@ -55,6 +57,7 @@ and keeps every posting you applied to so you can look at it again before an int
 - `data/`: everything you save (database, profile, per-application `.tex`/`.pdf`). Back this folder up.
 - `.env`: API key, and optionally `MODEL` (default `claude-opus-5`) and `EFFORT` (`low`…`max`, default `high`).
 - `app/`: the code (FastAPI backend, and a plain HTML/JS frontend in `app/static`).
+- `pyproject.toml` / `uv.lock`: dependencies. Add one with `uv add <package>`.
 
 Each application costs roughly $0.30–1.00 in API usage at the default settings, depending on how
 long your CV is and how many revision passes it needs.
