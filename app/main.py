@@ -22,6 +22,15 @@ db.init()
 STATIC = ROOT / "app" / "static"
 
 
+@app.middleware("http")
+async def no_stale_ui(request, call_next):
+    # Make the browser re-check the page/JS/CSS each load so UI updates show up immediately.
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/")
 def index():
     return FileResponse(STATIC / "index.html")

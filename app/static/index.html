@@ -4,19 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Resume Tailor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+  <div class="top-wash" aria-hidden="true"></div>
+  <a class="skip-link" href="#view">Skip to content</a>
   <header class="topbar">
-    <a class="brand" href="#new">Resume Tailor</a>
-    <nav>
-      <a href="#new" data-tab="new">New application</a>
-      <a href="#apps" data-tab="apps">Applications</a>
-      <a href="#profile" data-tab="profile">Profile</a>
-    </nav>
+    <div class="topbar-inner">
+      <a class="brand" href="#new" aria-label="Resume Tailor, new application"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">Resume Tailor</span></a>
+      <nav aria-label="Main">
+        <a href="#apps" data-tab="apps">Applications</a>
+        <a href="#profile" data-tab="profile">Profile</a>
+      </nav>
+      <a class="btn btn-primary nav-cta" href="#new" data-tab="new" aria-label="Tailor a resume"><span class="cta-long">Tailor a resume</span><span class="cta-short" aria-hidden="true">+ New</span></a>
+    </div>
   </header>
-  <main id="view"></main>
-  <div id="toast" hidden></div>
+  <main id="view" tabindex="-1"></main>
+  <div id="toast" role="status" aria-live="polite"></div>
   <script src="/static/app.js"></script>
 </body>
 </html>
