@@ -59,7 +59,7 @@ and keeps every posting you applied to so you can look at it again before an int
 ## Where things are
 
 - `data/`: everything you save (database, profile, per-application `.tex`/`.pdf`). Back this folder up.
-- `.env`: API key, and optionally `MODEL` (default `claude-opus-5`) and `EFFORT` (`low`…`max`, default `high`).
+- `.env`: API key, optionally `RESUME_TAILOR_DATA` (use a different data folder, e.g. for testing), and optionally `MODEL` (default `claude-opus-5`) and `EFFORT` (`low`…`max`, default `high`).
 - `app/`: the code (FastAPI backend, and a plain HTML/JS frontend in `app/static`).
 - `pyproject.toml` / `uv.lock`: dependencies. Add one with `uv add <package>`.
 

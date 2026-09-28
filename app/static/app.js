@@ -2,7 +2,7 @@ const $view = document.getElementById("view");
 
 const STATUS = {
   draft: { label: "Not applied yet", color: "var(--ink-faint)" },
-  applied: { label: "Applied", color: "var(--sky-600)" },
+  applied: { label: "Applied", color: "var(--accent-600)" },
   interview: { label: "Interview", color: "#c98a00" },
   offer: { label: "Offer", color: "var(--good)" },
   rejected: { label: "Rejected", color: "var(--bad)" },
@@ -168,7 +168,7 @@ async function renderNew() {
     ${hero("New application", "Tailor for a new job", "Paste the posting. Get a matching resume and cover letter.")}
     <div class="narrow">
       ${p.api_key_set ? "" : `<div style="margin-bottom:var(--s5)">${notice("warn", `Claude isn't connected yet. <a href="#profile">Add your API key</a>.`)}</div>`}
-      <form id="newForm" novalidate class="sky-panel">
+      <form id="newForm" novalidate class="accent-panel">
         <div class="panel-inner">
           <label class="field" for="jd">Job posting</label>
           <p class="hint" id="jdHint">The full text works best.</p>
@@ -324,7 +324,7 @@ async function renderApp(id) {
       <div class="narrow">
         <a class="back" href="#apps">← Applications</a>
         ${hero("Working on it", a.company ? esc(a.company) : "Tailoring…", "About 1 to 3 minutes. You can leave this page.")}
-        <div class="sky-panel">
+        <div class="accent-panel">
           <div class="panel-inner">
             <ol class="steps" id="steps" aria-live="polite" style="margin-top:0"></ol>
             <p class="progress-detail"><span id="detail"></span> · <span id="elapsed">0:00</span></p>
@@ -391,7 +391,7 @@ async function renderApp(id) {
     ${a.has_pdfs ? `
     <section style="margin-top:var(--s7)" aria-labelledby="atsH">
       <h2 id="atsH" class="visually-hidden">ATS check</h2>
-      <div class="sky-panel ats-panel">
+      <div class="accent-panel ats-panel">
         <div class="panel-side">
           <span class="eyebrow">ATS match</span>
           <div class="score-big">${r.score_supported}%</div>
