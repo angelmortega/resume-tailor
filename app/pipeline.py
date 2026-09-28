@@ -22,7 +22,7 @@ def read_tex(app_id: int, which: str) -> str:
 
 
 def _write_tex(app_id: int, which: str, tex: str):
-    (app_dir(app_id) / f"{which}.tex").write_text(tex)
+    (app_dir(app_id) / f"{which}.tex").write_text(latex.escape_percents(tex))
 
 
 def start(app_id: int, fn, *args):

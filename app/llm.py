@@ -51,7 +51,7 @@ RULES = """You are an expert technical recruiter and resume writer. For each job
 # LaTeX
 - Keep the template's preamble, document class, packages, custom commands, spacing and section styling exactly as they are. Change content, not design.
 - Output a complete, compilable document from \\documentclass to \\end{document}.
-- Escape special characters in text: & % $ # _ { } ~ ^ \\.
+- Escape special characters in text: & % $ # _ { } ~ ^ \\. Percentages must be written as 7\\% (a bare % starts a comment and deletes the rest of the line).
 - Do not add packages the template doesn't already load.
 
 # Cover letter

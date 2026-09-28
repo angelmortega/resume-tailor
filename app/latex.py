@@ -18,6 +18,15 @@ _PDFTEX_ONLY = [
 ]
 
 
+# In LaTeX a bare "%" starts a comment and silently drops the rest of the line. After a
+# digit ("7%") it is always meant as a percent sign, so escape it.
+_BARE_PERCENT = re.compile(r"(?<=\d)%")
+
+
+def escape_percents(tex: str) -> str:
+    return _BARE_PERCENT.sub(r"\\%", tex)
+
+
 class CompileError(Exception):
     def __init__(self, log: str):
         super().__init__("LaTeX compile failed")
