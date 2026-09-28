@@ -1,5 +1,6 @@
 """Background jobs: tailor → compile (auto-fix errors) → enforce page limit + ATS keywords."""
 
+import re
 import threading
 import traceback
 
@@ -8,6 +9,17 @@ from .config import APPS_DIR
 
 MAX_POLISH_ROUNDS = 2  # extra Claude passes for page length / missing keywords
 BOTH_DOCS = ("resume", "cover_letter")
+COVER_MAX_WORDS = 260  # body words; Claude aims for 180-250, this is the point where we make it trim
+
+_LETTER_BODY = re.compile(
+    r"^Dear\b.*?$(.*?)^(?:Sincerely|Best|Best regards|Kind regards|Regards|Warm regards|Respectfully)\b",
+    re.S | re.M)
+
+
+def cover_body_words(pdf_text: str) -> int:
+    """Words between the greeting and the sign-off (falls back to the whole letter)."""
+    m = _LETTER_BODY.search(pdf_text)
+    return len((m.group(1) if m else pdf_text).split())
 
 
 def app_dir(app_id: int):
@@ -109,6 +121,8 @@ def evaluate(app_id: int, prof: dict, keywords: list) -> dict:
     result["resume_page_limit"] = prof["resume_pages"]
     result["cover_pages"] = latex.page_count(d / "cover_letter.pdf")
     result["cover_page_limit"] = prof["cover_pages"]
+    result["cover_words"] = cover_body_words(latex.pdf_text(d / "cover_letter.pdf"))
+    result["cover_word_limit"] = COVER_MAX_WORDS
     return result
 
 
@@ -120,6 +134,9 @@ def _issues(r: dict) -> list[tuple[str, str]]:
                    "Tighten it: trim the least relevant bullets/projects and wordy phrasing, keeping every supported keyword."))
     if r["cover_pages"] > r["cover_page_limit"]:
         out.append(("cover_letter", f"The cover letter runs to {r['cover_pages']} pages; cut it to {r['cover_page_limit']}."))
+    if r.get("cover_words", 0) > COVER_MAX_WORDS:
+        out.append(("cover_letter", f"The cover letter body is {r['cover_words']} words. Cut it to about 220 words "
+                    "(180-250), keeping the reason for interest and the strongest qualifications."))
     if r["missing_supported"]:
         out.append(("resume", "An ATS scan of the compiled resume PDF can't find these keywords, which the candidate's background "
                    "supports: " + "; ".join(r["missing_supported"]) + ". Work each one into the resume using the job "

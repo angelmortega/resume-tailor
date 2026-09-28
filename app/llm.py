@@ -56,11 +56,15 @@ RULES = """You are an expert technical recruiter and resume writer. For each job
 - Do not add packages the template doesn't already load.
 
 # Cover letter
-- Fill the cover letter LaTeX template, keeping its formatting, with the candidate's real name and contact details. Replace any placeholder text. It must fit on one page.
-- Style: if a reference cover letter is provided, it is the candidate's own writing. Write the new letter so it reads as if the same person wrote it: match its tone and formality, voice, length (within about 15%), number and order of paragraphs, how it opens and closes, sentence length and rhythm, and characteristic phrasing. Don't reuse its company-specific content; its facts about the candidate may be reused when relevant.
-- Without a reference letter: 250-380 words, direct and specific, no clichés ("I am writing to express my interest"), no flattery filler.
-- Address it to the company and role from the posting (use "Hiring Manager" if no name is given). Use today's date.
-- Connect 2-3 of the job's top requirements to specific, real experience from the info dump. Mention only facts about the company that appear in the job description. Use the posting's key terms naturally."""
+- Fill the cover letter LaTeX template, keeping its formatting, with the candidate's real name and contact details. Replace any placeholder text. Address it to the company and role from the posting (use "Hiring Manager" if no name is given). Use today's date.
+- Keep it short. The body, from the greeting to the sign-off, is 180-250 words in 3 or 4 short paragraphs. Recruiters skim, so every sentence has to earn its place.
+- Structure:
+  1. Opening, 2-3 sentences: name the role and give one specific, genuine reason this job appeals to the candidate. Tie it to something concrete in the posting (the team's mission, the product, the problem it solves) and, where the candidate's materials support it, to their own path or interests. No generic praise of the company.
+  2. Why they're qualified, the core: 2-3 real accomplishments from the info dump that map straight onto the posting's top requirements, each with the tools used and a result or number when one exists. Make the link explicit, e.g. "the same kind of retrieval work this team owns".
+  3. Close, 1-2 sentences: what they would bring and that they'd welcome a conversation. Confident, not pleading.
+- Make it stand out: lead with the strongest match, be specific instead of general, include one memorable concrete detail, and do not restate the resume line by line. Avoid clichés such as "I am writing to express my interest", "I believe I would be a great fit", "passionate", "team player" and "fast-paced environment".
+- Style: if a reference cover letter is provided, it is the candidate's own writing. Write so it reads as the same person: match its voice, tone, formality, how it opens and closes, sentence rhythm and characteristic phrasing. Its length counts only when it falls within 180-250 words. Don't reuse its company-specific content; its facts about the candidate may be reused when relevant.
+- Mention only facts about the company that appear in the job description. Use the posting's key terms naturally."""
 
 
 def _profile_block(profile: dict) -> str:

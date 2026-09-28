@@ -371,6 +371,7 @@ async function renderApp(id) {
   const lengthWarnings = [];
   if (r.resume_pages > r.resume_page_limit) lengthWarnings.push(`Your resume is ${r.resume_pages} pages. The limit is ${r.resume_page_limit}. Ask Claude below to shorten it.`);
   if (r.cover_pages > r.cover_page_limit) lengthWarnings.push(`The cover letter runs to ${r.cover_pages} pages. Ask Claude below to shorten it.`);
+  if (r.cover_words > r.cover_word_limit) lengthWarnings.push(`The cover letter is ${r.cover_words} words. Aim for about 220. Ask Claude below to shorten it.`);
 
   $view.innerHTML = `
     <a class="back" href="#apps">← Applications</a>
@@ -400,6 +401,7 @@ async function renderApp(id) {
             <li><span>Required keywords</span><b>${r.score_required}%</b></li>
             <li><span>All posting keywords</span><b>${r.score_all}%</b></li>
             <li><span>Resume length</span><b>${r.resume_pages} of ${r.resume_page_limit} page${r.resume_page_limit > 1 ? "s" : ""}</b></li>
+            ${r.cover_words ? `<li><span>Cover letter</span><b>${r.cover_words} words</b></li>` : ""}
           </ul>
         </div>
         <div class="panel-inner">
