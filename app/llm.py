@@ -146,7 +146,21 @@ class ClaudeError(Exception):
     pass
 
 
-def _call(system, user_text: str, schema: dict, progress: Progress | None, label: str) -> dict:
+def _model_params(schema: dict, effort: str) -> dict:
+    """Request settings that differ by model family."""
+    fmt = {"type": "json_schema", "schema": schema}
+    if MODEL.startswith("claude-haiku"):
+        # Haiku 4.5 has no effort setting and uses a fixed thinking budget; 64K max output.
+        return {"max_tokens": 64000, "thinking": {"type": "enabled", "budget_tokens": 8000}, "output_config": {"format": fmt}}
+    params = {"max_tokens": 64000, "thinking": {"type": "adaptive"}, "output_config": {"effort": effort, "format": fmt}}
+    if MODEL.startswith(("claude-opus", "claude-fable")):
+        # If a safety classifier declines, retry on Anthropic's recommended fallback model.
+        params["betas"] = ["server-side-fallback-2026-07-01"]
+        params["fallbacks"] = "default"
+    return params
+
+
+def _call(system, user_text: str, schema: dict, progress: Progress | None, label: str, effort: str = EFFORT) -> dict:
     last = 0.0
     chars = 0
     try:
@@ -158,14 +172,9 @@ def _call(system, user_text: str, schema: dict, progress: Progress | None, label
     try:
         with client.beta.messages.stream(
             model=MODEL,
-            max_tokens=64000,
             system=system,
             messages=[{"role": "user", "content": user_text}],
-            thinking={"type": "adaptive"},
-            output_config={"effort": EFFORT, "format": {"type": "json_schema", "schema": schema}},
-            # If a safety classifier declines, retry on Anthropic's recommended fallback model.
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
+            **_model_params(schema, effort),
         ) as stream:
             for event in stream:
                 if event.type == "content_block_delta" and event.delta.type == "text_delta":
@@ -236,4 +245,5 @@ Apply the requested changes, following all the rules. Return the full updated do
 def fix_latex(tex: str, log: str, progress: Progress) -> str:
     system = "You fix LaTeX compile errors. The document is compiled with Tectonic (XeTeX engine). Make the smallest change that fixes the error; don't alter content or design otherwise. Return the complete corrected document."
     user = f"# Document\n{tex}\n\n# Compiler output\n{log}"
-    return _call(system, user, FIX_SCHEMA, progress, "Fixing a LaTeX error")["tex"]
+    # A small mechanical edit: low effort is plenty and keeps it cheap.
+    return _call(system, user, FIX_SCHEMA, progress, "Fixing a LaTeX error", effort="low")["tex"]
