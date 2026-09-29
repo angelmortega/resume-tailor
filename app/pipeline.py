@@ -139,8 +139,8 @@ def _issues(r: dict) -> list[tuple[str, str]]:
                     "(180-250), keeping the reason for interest and the strongest qualifications."))
     if r["missing_supported"]:
         out.append(("resume", "An ATS scan of the compiled resume PDF can't find these keywords, which the candidate's background "
-                   "supports: " + "; ".join(r["missing_supported"]) + ". Work each one into the resume using the job "
-                   "posting's exact wording, in a real bullet or the skills section."))
+                   "supports: " + "; ".join(r["missing_supported"]) + ". Add each one in the posting's exact wording where it reads naturally: "
+                   "usually the Skills section, or a bullet only if it truly describes that work. Do not force it into a sentence."))
     return out
 
 

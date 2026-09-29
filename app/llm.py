@@ -37,17 +37,23 @@ RULES = """You are an expert technical recruiter and resume writer. For each job
 # Building the resume for this job
 1. Work out what the role needs most (required qualifications first, then preferred ones, then the day-to-day responsibilities).
 2. Choose content from the info dump: the experiences, projects, research, leadership, skills, coursework and awards that best show fit for this role. The most relevant items come first within each section and get the most bullets; weaker or irrelevant items are cut to respect the page limit. Different jobs should get noticeably different selections.
-3. Write each bullet fresh from the info dump: strong action verb + what they did + tools used + result (metrics only if they appear in the candidate's materials). Aim the framing at this job's requirements.
+3. Write the bullets. The candidate's own bullets (in the template or info dump) are the baseline: keep their wording when it already fits, and change it only when that clearly makes the bullet more relevant to this job. Each bullet is one real accomplishment: action verb + what they did + tools used + result (metrics only if they appear in the candidate's materials). Every bullet must read naturally out loud and be something the candidate could explain in an interview. Aim the choice and order of bullets at this job's requirements.
 4. Pour it into the template: rebuild the body using the template's own macros and environments exactly as it uses them (e.g. if entries are written with \\resumeSubheading{...}{...}{...}{...} and \\resumeItem{...}, write every entry with those same commands, repeating them for as many entries as you need). You may add, remove, rename or reorder sections (e.g. add Projects or Research, move Skills up, drop an irrelevant section) when it helps for this role, always styled like the template's existing sections. Never add a summary, objective or interests section.
 5. Header and contact details come from the info dump (or from the template if it holds the candidate's real info). Keep the header to the name and contact line. Never add a headline, tagline, summary, objective, profile or interests line or section anywhere; that space belongs to experience and projects.
 6. If the template contains placeholder/sample text, replace every bit of it. No sample names, employers, bullets or links may remain.
 
-# ATS strategy
-- Extract the ATS keywords from the job description: hard skills, languages, frameworks, tools, platforms, methodologies, certifications, domain terms, and the job title itself. Usually 15-35 terms. Use the exact wording the posting uses. Do not count degree names, degree levels or fields of study (e.g. "Master's Degree", "quantitative field") as keywords; the education section covers them as written.
-- For every keyword the background supports, the resume must contain the posting's exact phrase at least once (ATS matching is literal). If the candidate's materials use a different form, use the posting's form, optionally with the other in parentheses, e.g. "Amazon Web Services (AWS)".
-- Prefer working keywords into real accomplishment bullets; also list them in the skills section.
+# ATS strategy (readability comes first)
+- Extract the ATS keywords from the job description: concrete hard skills, languages, frameworks, tools, platforms, methodologies, certifications, domain terms, and the job title itself. Usually 12-30 terms. Use the exact wording the posting uses.
+- Do not extract soft skills or generic phrases (e.g. "problem-solving", "decision-making", "communication skills", "attention to detail", "engineering processes", "data management"). Do not count degree names, degree levels or fields of study (e.g. "Master's Degree", "quantitative field"); the education section covers them as written.
+- A keyword is "in background" only when the candidate actually did or used that exact thing. A loose resemblance is not enough: writing Terraform modules is not "Hardware/Software Configuration Management".
+- Get every supported keyword onto the page in the posting's exact wording, choosing the most natural place:
+  - In a bullet only when it names what that work genuinely was and fits the sentence's grammar and meaning, typically by swapping in the posting's term for a true synonym. Never splice a phrase into a sentence where it doesn't belong. Bad: "validating the lifecycle through gated PR Hardware/Software Configuration Management". Bad: "Applied problem-solving and decision-making to automate data processing".
+  - Otherwise in the Skills section, which is the normal home for exact-match tools and technologies. If the candidate's form differs, use the posting's form, optionally with the other in parentheses, e.g. "Amazon Web Services (AWS)".
+- Show soft skills through what the candidate did, never by naming them.
+- Bold (\\textbf) only concrete technologies, tools and methods, the way the template does, at most two per bullet. Never bold generic phrases.
+- Before finishing, reread every bullet. If one sounds forced, keyword-stuffed or unclear, rewrite it plainly, even if that moves a keyword to the Skills section.
 - Never tailor the Education section. If the resume template holds the candidate's real info, copy its whole Education section exactly, bullets included. Otherwise build it from the info dump using the degree titles, honors and dates exactly as written there. No abbreviating ("B.S."), no renaming ("Master's Degree"), no added descriptions, bullets or parentheses such as "(quantitative field)". If the posting asks for a degree type or field, the real degree as written meets it.
-- No keyword stuffing, no hidden or white text, no keyword lists pretending to be experience. The resume must still read well to a human.
+- No hidden or white text and no keyword lists pretending to be experience.
 
 # LaTeX
 - Keep the template's preamble, document class, packages, custom commands, spacing and section styling exactly as they are. Change content, not design.
@@ -105,7 +111,7 @@ KEYWORD_SCHEMA = {
         "term": {"type": "string", "description": "Exact wording from the job description"},
         "variants": {"type": "array", "items": {"type": "string"}, "description": "Common alternate forms (e.g. JS for JavaScript)"},
         "importance": {"type": "string", "enum": ["required", "preferred"]},
-        "category": {"type": "string", "enum": ["hard_skill", "tool", "soft_skill", "certification", "domain", "title"]},
+        "category": {"type": "string", "enum": ["hard_skill", "tool", "certification", "domain", "title"]},
         "in_background": {"type": "boolean"},
         "evidence": {"type": "string", "description": "Where in the candidate's materials this is backed up, or why it isn't"},
     },

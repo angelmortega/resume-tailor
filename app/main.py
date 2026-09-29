@@ -184,6 +184,15 @@ def revise_application(app_id: int, body: ReviseIn):
     return {"ok": True}
 
 
+@app.post("/api/applications/{app_id}/regenerate")
+def regenerate_application(app_id: int):
+    """Write both documents again from scratch for the saved posting (fresh keyword pass)."""
+    a = _get_or_404(app_id)
+    _ensure_idle(a)
+    pipeline.start(app_id, pipeline.generate)
+    return {"ok": True}
+
+
 @app.post("/api/applications/{app_id}/retry")
 def retry_application(app_id: int):
     a = _get_or_404(app_id)

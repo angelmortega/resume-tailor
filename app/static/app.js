@@ -465,6 +465,11 @@ async function renderApp(id) {
           <span class="eyebrow">Last change</span>
           <h2 style="margin-bottom:var(--s4)">What Claude changed</h2>
           <div class="changes">${esc(a.changes) || "Nothing yet."}</div>
+          <hr style="margin:var(--s5) 0 var(--s4)">
+          <div class="row" style="justify-content:space-between">
+            <span class="muted small">Not happy with it overall?</span>
+            <button class="btn btn-quiet" id="regen" type="button">Start over from scratch</button>
+          </div>
         </div>
       </div>
     </section>` : ""}
@@ -564,9 +569,14 @@ async function renderApp(id) {
     } catch (err) { $("#revErr").textContent = err.message; btn.disabled = false; }
   };
   $("#rev").oninput = () => ($("#revErr").textContent = "");
+  $("#regen").onclick = async () => {
+    if (!confirm("Write a brand-new resume and cover letter for this posting? This replaces the current ones and costs about the same as a new application.")) return;
+    try { await api(`/api/applications/${id}/regenerate`, { method: "POST" }); route(); }
+    catch (err) { toast(err.message); }
+  };
   const addMissing = $("#addMissing");
   if (addMissing) addMissing.onclick = () => {
-    $("#rev").value = `Work these keywords into the resume using the posting's exact wording, only where my background supports them: ${missing.map((k) => k.term).join(", ")}.`;
+    $("#rev").value = `Add these keywords in the posting's exact wording, in the Skills section or in a bullet only where it reads naturally: ${missing.map((k) => k.term).join(", ")}. Don't force them into sentences.`;
     $("input[name=target][value=resume]").checked = true;
     $("#rev").scrollIntoView({ behavior: "smooth", block: "center" });
     $("#rev").focus({ preventScroll: true });
