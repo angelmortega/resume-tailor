@@ -1,69 +1,115 @@
 # Resume Tailor
 
-A local web app that uses Claude to tailor your LaTeX resume and cover letter to a job
-posting, makes sure the resume covers the posting's ATS keywords (only ones you actually have),
-and keeps every posting you applied to so you can look at it again before an interview.
+Resume Tailor is a local web app. It uses Claude to tailor your LaTeX resume and cover letter to one job posting. It checks the result with an ATS keyword scan. It also keeps a record of each job that you apply to.
 
-## First-time setup
+![The application page with the ATS match score and the keyword results](docs/screenshots/application.png)
 
-0. **Install the tools** (once): [uv](https://docs.astral.sh/uv/) for Python, and Tectonic,
-   which turns LaTeX into PDFs:
+## What it does
+
+- You paste a job posting. Claude writes a tailored resume and cover letter in your own LaTeX templates.
+- The app compiles both documents to PDF. If the LaTeX does not compile, Claude fixes the error.
+- The app reads the text in the PDF, the same way an applicant tracking system (ATS) reads it. Then it shows which keywords from the posting are in the resume.
+- If a keyword that you have is missing, or if the resume is too long, the app sends the problem back to Claude.
+- You can ask for changes in plain English. You can also edit the LaTeX directly.
+- A board shows each application by status: not applied yet, applied, interview, offer, or rejected.
+- Each application keeps the original job posting, your notes, and the exact PDFs that you sent.
+
+![The applications board with one column for each status](docs/screenshots/board.png)
+
+## How it works
+
+1. **Profile.** You give the app four items one time:
+   - An "info dump" with all of your experience.
+   - A LaTeX resume template.
+   - A LaTeX cover letter template.
+   - A reference cover letter (optional). New letters use its voice and structure.
+2. **Tailor.** Claude reads the posting. It finds the ATS keywords and marks the keywords that your background supports. Then it selects your most relevant experience and writes it into your template. It uses the macros of your template, so the design does not change.
+3. **Compile.** Tectonic (a XeTeX engine) compiles the LaTeX to PDF.
+4. **Check.** The app extracts the text from the PDF and searches it for each keyword. It also counts the resume pages and the words in the cover letter.
+5. **Polish.** If a check fails, Claude gets a specific instruction. An example is "cut the letter to 220 words". Then the app repeats steps 3 and 4. It does this two times at most.
+
+![A resume that the app generated for a fictional candidate](docs/screenshots/resume.png)
+
+## Design decisions
+
+- **Honesty.** Claude uses only facts from your own materials. It does not add skills, employers, dates, or metrics. A keyword counts as "in your background" only if you did that exact work. The app shows unsupported keywords as gaps and does not add them.
+- **Readable bullets first.** A keyword goes into a bullet only if it describes that work correctly. Otherwise it goes into the Skills section. Claude rereads each bullet and rewrites the bullets that sound forced.
+- **The ATS check uses the PDF.** An ATS reads the PDF, not the LaTeX source. Thus the app checks the extracted PDF text. This finds problems that the source does not show, for example a bare `%` that deletes the rest of a line.
+- **The app enforces the rules in code.** Instructions to a model are not guarantees. Thus the app does these steps itself:
+  - It escapes a `%` that follows a number.
+  - It changes only the document that you select in a revision.
+  - It measures the page count and the word count.
+- **No changes to Education.** Claude copies the Education section from your template exactly. It does not rename or abbreviate a degree.
+- **Cost control.** The default model is Claude Sonnet 5 at medium effort. LaTeX fixes use low effort. Prompt caching reuses your profile across requests.
+- **Accessibility.** The UI follows WCAG AA. All text has a contrast ratio of 4.5:1 or more. You can use the keyboard for all controls, and all controls have labels for screen readers. Delete and status changes have an Undo option.
+
+## Tech stack
+
+| Part | Technology |
+|---|---|
+| Model | Claude API (Anthropic Python SDK), structured outputs, streaming, prompt caching |
+| Backend | Python, FastAPI, SQLite |
+| PDF | Tectonic (LaTeX to PDF), pypdf (text extraction) |
+| Frontend | HTML, CSS, and JavaScript, with no framework |
+| Tooling | uv (dependencies and lock file) |
+
+## Set up and run
+
+You need a Mac with [Homebrew](https://brew.sh) and an [Anthropic API key](https://console.anthropic.com).
+
+1. Install the tools:
    ```
    brew install uv tectonic
    ```
-1. **Get an Anthropic API key**: go to https://console.anthropic.com, sign in, then
-   *API keys → Create key*. Add a few dollars of credit under *Billing*. This is separate
-   from a Claude.ai subscription.
-2. Copy `.env.example` to `.env` (if there's no `.env` yet) and paste the key into it:
-   ```
-   ANTHROPIC_API_KEY=sk-ant-...
-   ```
-3. Start the app:
+2. Copy `.env.example` to `.env`.
+3. Open `.env` and put your API key after `ANTHROPIC_API_KEY=`.
+4. Start the app:
    ```
    uv run main.py
    ```
-   It opens http://localhost:8000 (add `--no-browser` to skip that). Stop it with Ctrl+C.
-   The first run installs the Python packages pinned in `uv.lock` automatically.
-4. On the **Profile** tab:
-   1. **Your info**: dump everything about you (jobs, research, projects, skills, awards, contact
-      details). Paste it, or add files (PDF, Word, .tex, .txt); files are appended, so you can add your
-      CV plus old resumes. This is the pool Claude picks from for every job.
-   2. **Resume template**: your `.tex` resume. Say whether it's your real resume or just a
-      blank/sample template. Either way its design and macros are kept, and its content is rebuilt
-      from your info for each job. Pick a max page count (default: whatever the template compiles to).
-   3. **Cover letter template**: your `.tex` cover letter. Its layout is kept and the text is written
-      fresh for each job.
-   4. **Reference cover letter** (recommended): a cover letter you wrote and like (paste it or load a
-      PDF/Word/.txt). Claude matches its voice, tone, length, paragraph structure, opening and
-      closing, so every new letter sounds like you. Its company-specific parts aren't reused.
+5. Go to http://localhost:8000. The app opens this page automatically.
+6. On the **Profile** page, add your info dump, your templates, and your reference letter. Then click **Save**.
+7. Click **Tailor a resume** and paste a job posting.
 
-   Click **Save**. The app compiles both templates once to check they work. If a template uses a
-   custom `.cls`/`.sty`, font or image, upload it under *Extra template files*.
+The first run installs the Python packages from `uv.lock`. The first compile also downloads the LaTeX packages. Thus the first run takes more time.
 
-## Using it
+## Configuration
 
-- **New application**: paste the job description and click *Tailor*. Claude:
-  1. pulls out the company, role and 15–35 ATS keywords, and marks which ones your background supports,
-  2. picks the most relevant experience, projects and skills from your info dump for this role,
-     writes fresh bullets aimed at the posting, and builds them into your resume template with the
-     template's own LaTeX commands (it can add/reorder sections in the same style); then writes the cover letter in your
-     reference letter's style inside your cover letter template,
-  3. compiles the PDFs (automatically fixing any LaTeX errors),
-  4. scans the text of the compiled PDF the way an ATS would. If a keyword you have is missing,
-     or the resume runs over its page count, Claude revises it (up to 2 extra passes).
-- Review the PDFs and the keyword chips, ask for changes in plain English, or edit the LaTeX yourself.
-- Click **Mark as applied** once you've sent it. It then shows up in **Applications**, where you can
-  update the status (applied → interview → offer / rejected), add notes, and read the original
-  job description again.
+Set these values in `.env`:
 
-## Where things are
+| Variable | Default | Purpose |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | none | Your API key. This value is necessary. |
+| `MODEL` | `claude-sonnet-5` | The Claude model. Use `claude-opus-5` for the best quality at a higher cost. |
+| `EFFORT` | `medium` | How much the model thinks: `low`, `medium`, `high`, `xhigh`, or `max`. |
+| `RESUME_TAILOR_DATA` | `data/` | A different data folder, for example for tests. |
 
-- `data/`: everything you save (database, profile, per-application `.tex`/`.pdf`). Back this folder up.
-- `.env`: API key, optionally `RESUME_TAILOR_DATA` (use a different data folder, e.g. for testing), and optionally `MODEL` (default `claude-sonnet-5`) and `EFFORT` (`low`…`max`, default `medium`).
-- `app/`: the code (FastAPI backend, and a plain HTML/JS frontend in `app/static`).
-- `pyproject.toml` / `uv.lock`: dependencies. Add one with `uv add <package>`.
+## Cost
 
-Each application costs roughly $0.10–0.35 in API usage with the default model (Claude Sonnet 5),
-depending on how long your info dump is and how many revision passes it needs. For the strongest
-results at about 2.5x the price, set `MODEL=claude-opus-5` and `EFFORT=high` in `.env`.
-`MODEL=claude-haiku-4-5` is cheapest but less careful with keyword honesty and LaTeX.
+One application costs approximately $0.10 to $0.35 with the default model. A revision costs approximately $0.05 to $0.10. The cost changes with the length of your info dump and the number of polish passes.
+
+## Your data
+
+All data stays on your computer, in the `data/` folder. This folder contains the database, your profile, and the PDFs. Git ignores this folder and the `.env` file. The app sends your materials to the Claude API only to write the documents. Make a backup copy of `data/` from time to time.
+
+## Project structure
+
+```
+main.py              Starts the server and opens the browser
+app/
+  main.py            API routes
+  pipeline.py        Background jobs: tailor, compile, check, polish
+  llm.py             Claude prompts and API calls
+  latex.py           LaTeX compile and PDF text extraction
+  ats.py             Keyword search in the PDF text
+  profile.py         Your templates and info dump
+  db.py              SQLite storage
+  static/            The web interface
+docs/screenshots/    Images for this README (fictional sample data)
+```
+
+## License
+
+This project uses the MIT License. See [LICENSE](LICENSE).
+
+Built by Angel M. Ortega. [GitHub](https://github.com/angelmortega) · [LinkedIn](https://linkedin.com/in/angel-m-ortega)

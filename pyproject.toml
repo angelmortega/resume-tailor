@@ -3,6 +3,7 @@ name = "resume-tailor"
 version = "0.1.0"
 description = "Tailor LaTeX resumes & cover letters to job postings with Claude, with ATS keyword checks and an application tracker"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
     "anthropic>=1.8",
