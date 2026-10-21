@@ -40,6 +40,7 @@ Resume Tailor is a local web app. It uses Claude to tailor your LaTeX resume and
   - It changes only the document that you select in a revision.
   - It measures the page count and the word count.
 - **No changes to Education.** Claude copies the Education section from your template exactly. It does not rename or abbreviate a degree.
+- **Compact Skills section.** The Skills section has 4 lines at most. The app counts the lines and sends the resume back to Claude if there are more.
 - **Cost control.** The default model is Claude Sonnet 5 at medium effort. LaTeX fixes use low effort. Prompt caching reuses your profile across requests.
 - **Accessibility.** The UI follows WCAG AA. All text has a contrast ratio of 4.5:1 or more. You can use the keyboard for all controls, and all controls have labels for screen readers. Delete and status changes have an Undo option.
 
@@ -73,6 +74,14 @@ You need a Mac with [Homebrew](https://brew.sh) and an [Anthropic API key](https
 
 The first run installs the Python packages from `uv.lock`. The first compile also downloads the LaTeX packages. Thus the first run takes more time.
 
+## Run the tests
+
+```
+uv run pytest
+```
+
+The tests replace Claude with a fake, so they do not use API credits. They compile real LaTeX with Tectonic. They use a temporary data folder, so they do not change your own data.
+
 ## Configuration
 
 Set these values in `.env`:
@@ -105,6 +114,7 @@ app/
   profile.py         Your templates and info dump
   db.py              SQLite storage
   static/            The web interface
+tests/               Pipeline and check tests (fake Claude, real LaTeX)
 docs/screenshots/    Images for this README (fictional sample data)
 ```
 

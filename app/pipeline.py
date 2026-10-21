@@ -16,6 +16,16 @@ _LETTER_BODY = re.compile(
     re.S | re.M)
 
 
+MAX_SKILL_LINES = 4
+_SKILLS_SECTION = re.compile(r"\\section\*?\{[^}]*Skills[^}]*\}(.*?)(?=\\section|\\end\{document\})", re.S)
+
+
+def skill_lines(tex: str) -> int:
+    """Number of category lines in the Skills section (each starts with a bold label)."""
+    m = _SKILLS_SECTION.search(tex)
+    return len(re.findall(r"(?m)^\s*\\textbf\{", m.group(1))) if m else 0
+
+
 def cover_body_words(pdf_text: str) -> int:
     """Words between the greeting and the sign-off (falls back to the whole letter)."""
     m = _LETTER_BODY.search(pdf_text)
@@ -122,6 +132,7 @@ def evaluate(app_id: int, prof: dict, keywords: list) -> dict:
     result["cover_pages"] = latex.page_count(d / "cover_letter.pdf")
     result["cover_page_limit"] = prof["cover_pages"]
     result["cover_words"] = cover_body_words(latex.pdf_text(d / "cover_letter.pdf"))
+    result["skill_lines"] = skill_lines(read_tex(app_id, "resume"))
     result["cover_word_limit"] = COVER_MAX_WORDS
     return result
 
@@ -132,6 +143,9 @@ def _issues(r: dict) -> list[tuple[str, str]]:
     if r["resume_pages"] > r["resume_page_limit"]:
         out.append(("resume", f"The resume compiles to {r['resume_pages']} pages but must fit on {r['resume_page_limit']}. "
                    "Tighten it: trim the least relevant bullets/projects and wordy phrasing, keeping every supported keyword."))
+    if r.get("skill_lines", 0) > MAX_SKILL_LINES:
+        out.append(("resume", f"The Skills section has {r['skill_lines']} category lines. Merge them into at most "
+                    f"{MAX_SKILL_LINES} (counting spoken languages), keeping only specific named tools and technologies."))
     if r["cover_pages"] > r["cover_page_limit"]:
         out.append(("cover_letter", f"The cover letter runs to {r['cover_pages']} pages; cut it to {r['cover_page_limit']}."))
     if r.get("cover_words", 0) > COVER_MAX_WORDS:
